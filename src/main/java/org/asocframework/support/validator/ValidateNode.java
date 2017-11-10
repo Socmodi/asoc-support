@@ -34,7 +34,7 @@ public class ValidateNode {
 
     private String[] belongs;
 
-    private boolean suportNull;
+    private boolean supportNull;
 
     public ValidateNode(Valid valid, Field field){
         this(valid,field.getName());
@@ -53,12 +53,12 @@ public class ValidateNode {
         }
         regexpTemplate = valid.refexpTemplate();
         belongs = valid.belongs();
-        suportNull = valid.suportNull();
+        supportNull = valid.suportNull();
     }
 
     public void validate(ValidateState state,Object value,Object object){
         boolean isNull = value==null|| "".equals(value.toString());
-        if(suportNull&&isNull){
+        if(supportNull&&isNull){
             return ;
         }
         if(defaultValue!=null && !"".equals(defaultValue)){
@@ -116,7 +116,7 @@ public class ValidateNode {
 
     public void validate(ValidateState state,Object value){
         boolean isNull = value==null|| "".equals(value.toString());
-        if(suportNull&&isNull){
+        if(supportNull&&isNull){
             return ;
         }
         if(!StringUtils.isEmpty(defaultValue)){
