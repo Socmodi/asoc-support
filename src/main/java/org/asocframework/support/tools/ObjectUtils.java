@@ -99,6 +99,12 @@ public class ObjectUtils {
 		return null;
 	}
 
+	public static boolean equal(Object before, Object after) {
+
+		return before.hashCode()==after.hashCode();
+
+	}
+
 	/**
 	 * 转化bean上下文，使用本地存储
 	 */
