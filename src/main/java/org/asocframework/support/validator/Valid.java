@@ -67,4 +67,10 @@ public @interface Valid {
      */
     boolean  supportNull() default false;
 
+    /**
+     *
+     * @return
+     */
+    int length() default 0;
+
 }

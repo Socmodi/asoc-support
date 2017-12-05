@@ -41,6 +41,8 @@ public class ValidateNode {
 
     private boolean supportNull;
 
+    private int length;
+
     public ValidateNode(Valid valid, Field field){
         this(valid,field.getName());
         this.field =field;
@@ -59,6 +61,7 @@ public class ValidateNode {
         regexpTemplate = valid.refexpTemplate();
         belongs = valid.belongs();
         supportNull = valid.supportNull();
+        length = valid.length();
     }
 
     public void validate(ValidateState state,Object value,Object object){
@@ -131,6 +134,12 @@ public class ValidateNode {
 
     }
 
+    /**
+     *  后续优化,每个校验组件化独立。根据当前节点订阅情况,动态调用校验组件。
+     * @param state
+     * @param value
+     * @param supportDefault
+     */
     private void validateBaseData(ValidateState state,Object value,Boolean supportDefault){
         boolean isNull = value==null|| "".equals(value.toString());
         boolean noneDef = StringUtils.isEmpty(defaultValue);
@@ -153,7 +162,6 @@ public class ValidateNode {
                 return ;
             }
         }
-
         if(belongs!=null&&belongs.length>0){
             boolean found = false;
             for(String val : belongs){
@@ -168,26 +176,33 @@ public class ValidateNode {
                 return ;
             }
         }
-        if(maxValue!=null&&!"".equals(maxValue)&&(Double.parseDouble(value.toString()) >Double.valueOf(maxValue))){
+        if(length>0&& (value instanceof String)&&((String) value).length()>length){
+            state.setErrorMsg(name+"长度大于"+length);
+            state.setPass(false);
+            return ;
+        }
+
+        if(!StringUtils.isEmpty(maxValue)&&(Double.parseDouble(value.toString()) >Double.valueOf(maxValue))){
             state.setErrorMsg(name+"大于最大值"+maxValue);
             state.setPass(false);
             return ;
         }
-        if(minValue!=null&&!"".equals(minValue)&&(Double.parseDouble(value.toString()) <Double.valueOf(minValue))){
+
+        if(!StringUtils.isEmpty(minValue)&&(Double.parseDouble(value.toString()) <Double.valueOf(minValue))){
             state.setErrorMsg(name+"小于最小值"+minValue);
             state.setPass(false);
             return;
         }
-        if(regexp!=null&&!"".equals(regexp)&& value instanceof String){
+
+        if(!StringUtils.isEmpty(regexp)&& value instanceof String){
             Matcher matcher = pattern.matcher((String)value);
             if(!matcher.matches()){
-                state.setErrorMsg(name+"非法输入值:"+regexp);
+                state.setErrorMsg(name+"非法输入值:"+value);
                 state.setPass(false);
                 return;
             }
         }
     }
-
 
     public Field getField() {
         return field;
