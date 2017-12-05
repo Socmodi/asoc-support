@@ -11,4 +11,6 @@ public class CommonStateCode {
 
     public static final StateCode FAIL = new StateCode(-10000,"失败");
 
+    public static final  StateCode PARAM_ERROR = new StateCode(-10001,"参数错误");
+
 }

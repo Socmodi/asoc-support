@@ -1,6 +1,7 @@
 package org.asocframework.support.tools;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.asocframework.support.model.TrionesException;
 
 import java.beans.IntrospectionException;
 import java.lang.reflect.Field;
@@ -14,10 +15,7 @@ public class ObjectUtils {
 	private ObjectUtils() {
 	}
 
-
-	private static Map<String,BeanContext> contexts = new HashMap<String,BeanContext>();
-
-
+	private static Map<String,BeanContext> contexts = new HashMap();
 
 	/**
 	 *
@@ -40,7 +38,7 @@ public class ObjectUtils {
 			}
 			return obj;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new TrionesException(e);
 		}
 	}
 
@@ -77,7 +75,7 @@ public class ObjectUtils {
 					date = DateUtils.parseToSecond(value);
 				}
 			} catch (ParseException e) {
-				throw new RuntimeException(e);
+				throw new TrionesException(e);
 			}
 			return date;
 		} else if(Boolean.class.isAssignableFrom(type)) {

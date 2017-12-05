@@ -1,6 +1,8 @@
 package org.asocframework.support.tools;
 
 import org.apache.commons.lang3.StringUtils;
+import org.asocframework.support.model.TrionesException;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -197,12 +199,12 @@ public class MapUtils {
         if (isKey) {
             String localKey = temp.toString();
             if (localKey.length() == 0) {
-                throw new RuntimeException("QString format illegal");
+                throw new TrionesException("QString format illegal");
             }
             map.put(localKey, "");
         } else {
             if (key.length() == 0) {
-                throw new RuntimeException("QString format illegal");
+                throw new TrionesException("QString format illegal");
             }
             map.put(key, temp.toString());
         }

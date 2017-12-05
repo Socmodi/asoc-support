@@ -2,8 +2,13 @@ package org.asocframework.support.validator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.asocframework.support.model.ClassSources;
+import org.asocframework.support.model.TrionesException;
+import org.asocframework.support.tools.ClassUtils;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,80 +58,102 @@ public class ValidateNode {
         }
         regexpTemplate = valid.refexpTemplate();
         belongs = valid.belongs();
-        supportNull = valid.suportNull();
+        supportNull = valid.supportNull();
     }
 
     public void validate(ValidateState state,Object value,Object object){
-        boolean isNull = value==null|| "".equals(value.toString());
-        if(supportNull&&isNull){
-            return ;
-        }
-        if(defaultValue!=null && !"".equals(defaultValue)){
-            try {
-                FieldUtils.writeDeclaredField(object,field.getName(),defaultValue,true);
-                value = defaultValue;
-            } catch (IllegalAccessException e) {
-            }
-        }
+        if(field==null){
+            throw new TrionesException("非法验证机制");
 
-        if(isNull){
-            state.setErrorMsg(field.getName()+"为:"+value);
-            state.setPass(false);
-            return ;
         }
-
-        if(belongs!=null&&belongs.length>0) {
-            boolean found = false;
-            for (String val : belongs) {
-                if (val.equals(String.valueOf(value))) {
-                    found = true;
-                    break;
+        if(ClassUtils.isBaseDataType(value.getClass())){
+            validateBaseData(state,value,true);
+            if(!StringUtils.isEmpty(defaultValue)){
+                try {
+                    Class type = ClassSources.getBaseDataClass(field.getType().getName());
+                    FieldUtils.writeDeclaredField(object,field.getName(),ClassUtils.constructValue(type,defaultValue),true);
+                } catch (IllegalAccessException e) {
+                    throw new TrionesException("非法验证机制",e);
                 }
             }
-            if (!found) {
-                state.setErrorMsg(field.getName() + "非法值:" + value);
-                state.setPass(false);
-                return;
-            }
+        }else {
+            validateCompoundData(state,value,value.getClass(),false);
         }
-
-        if(maxValue!=null&&!"".equals(maxValue)&&(Double.parseDouble(value.toString()) >Double.valueOf(maxValue))){
-            state.setErrorMsg(field.getName()+"大于最大值"+maxValue);
-            state.setPass(false);
-            return ;
-        }
-
-        if(minValue!=null&&!"".equals(minValue)&&(Double.parseDouble(value.toString()) <Double.valueOf(minValue))){
-            state.setErrorMsg(field.getName()+"小于最小值"+minValue);
-            state.setPass(false);
-            return;
-        }
-
-        if(regexp!=null&&!"".equals(regexp)&& value instanceof String){
-            Matcher matcher = pattern.matcher((String)value);
-            if(!matcher.matches()){
-                state.setErrorMsg(field.getName()+"非法输入值:"+regexp);
-                state.setPass(false);
-                return;
-            }
-        }
-
     }
 
 
     public void validate(ValidateState state,Object value){
+        if(ClassUtils.isBaseDataType(value.getClass())){
+            validateBaseData(state, value,false);
+        }else {
+            validateCompoundData(state,value,value.getClass(),false);
+        }
+    }
+
+    private void validateCompoundData(ValidateState state,Object value,Class clazz,Boolean supportDef){
+        if(value instanceof Collection){
+            validateCollection(state, (Collection) value,supportDef);
+            return;
+        }
+        if(clazz.isArray()){
+            validateArray(state, (Object[]) value,supportDef);
+            return;
+        }
+        ValidateTools.volidate(state,value);
+    }
+
+    private void validateCollection(ValidateState state,Collection collection,Boolean supportDef){
+        Iterator iterator = collection.iterator();
+        while (iterator.hasNext()){
+            if(!state.isPass()){
+                break;
+            }
+            Object val = iterator.next();
+            if(ClassUtils.isBaseDataType(val.getClass())){
+                validateBaseData(state,val,supportDef);
+            }else {
+                validateCompoundData(state,val,val.getClass(),false);
+            }
+        }
+    }
+
+    private void validateArray(ValidateState state, Object[] array, Boolean supportDef){
+        for (Object val: array) {
+            if(!state.isPass()){
+                break;
+            }
+            if(ClassUtils.isBaseDataType(val.getClass())){
+                validateBaseData(state,val,supportDef);
+            }else {
+                validateCompoundData(state,val,val.getClass(),false);
+            }
+        }
+
+    }
+
+    private void validateBaseData(ValidateState state,Object value,Boolean supportDefault){
         boolean isNull = value==null|| "".equals(value.toString());
+        boolean noneDef = StringUtils.isEmpty(defaultValue);
         if(supportNull&&isNull){
             return ;
         }
-        if(!StringUtils.isEmpty(defaultValue)){
-            value = defaultValue;
+        if(supportDefault){
+            if(!noneDef){
+                value = defaultValue;
+            }
+            if(isNull && noneDef){
+                state.setErrorMsg(name+"为: "+value);
+                state.setPass(false);
+                return ;
+            }
+        }else {
+            if(isNull){
+                state.setErrorMsg(name+"为: "+value);
+                state.setPass(false);
+                return ;
+            }
         }
-        if(isNull){
-            state.setErrorMsg(name+"为: "+value);
-            state.setPass(false);
-            return ;
-        }
+
         if(belongs!=null&&belongs.length>0){
             boolean found = false;
             for(String val : belongs){
@@ -219,4 +246,11 @@ public class ValidateNode {
         this.regexpTemplate = regexpTemplate;
     }
 
+    public Valid getValid() {
+        return valid;
+    }
+
+    public void setValid(Valid valid) {
+        this.valid = valid;
+    }
 }

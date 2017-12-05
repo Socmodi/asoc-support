@@ -65,6 +65,6 @@ public @interface Valid {
      * 支持为空
      * @return
      */
-    boolean  suportNull() default false;
+    boolean  supportNull() default false;
 
 }

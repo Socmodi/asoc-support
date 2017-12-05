@@ -2,6 +2,7 @@ package org.asocframework.support.tools;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.asocframework.support.model.TrionesException;
 
 import java.io.UnsupportedEncodingException;
 
@@ -34,9 +35,8 @@ public class SecurityUtils {
             stringBuilder.append(B);
             return stringBuilder.toString();
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new TrionesException(e);
         }
-        return null;
     }
 
     public static String parityDecode(String data){
@@ -61,9 +61,8 @@ public class SecurityUtils {
             }
             return new String(Base64.decode(new String(A)),"UTF-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new TrionesException(e);
         }
-        return null;
     }
 
     public static String easyColation(String data){
@@ -78,9 +77,5 @@ public class SecurityUtils {
         return data;
     }
 
-
-    public static  void main(String args[]){
-
-    }
 
 }

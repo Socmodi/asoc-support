@@ -1,16 +1,13 @@
 package org.asocframework.support.validator;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.asocframework.support.model.TrionesException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -21,10 +18,10 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ValidateTools {
 
-    private static final ConcurrentMap<String,List<ValidateNode>> caches = new ConcurrentHashMap<String,List<ValidateNode>>();
+    private static final ConcurrentMap<String,List<ValidateNode>> caches = new ConcurrentHashMap();
 
-    private static Map<String,List<ValidateNode>> pcaches = new ConcurrentHashMap();
-
+    private ValidateTools() {
+    }
 
     /**
      * facade层调用，验证多个常规数据参数，int，string，long
@@ -34,7 +31,7 @@ public class ValidateTools {
      */
     public static ValidateState volidate(String key , Object ...objs){
         ValidateState state = new ValidateState();
-        List<ValidateNode> list = pcaches.get(key);
+        List<ValidateNode> list = caches.get(key);
         executeValidateNodes(list,state,objs);
         return state;
     }
@@ -59,24 +56,7 @@ public class ValidateTools {
     }
 
     /*facade层调用，用于验证RO数据对象等*/
-    private static ValidateState volidate(ValidateState state, Object param) {
-        Class clazz  =  param.getClass();
-        /*针对非基础类型对象数组*/
-        if(isArray(clazz)){
-            //暂时不处理
-        }
-        /*针对非基础类型对象List*/
-        if(isList(param)){
-            //暂时不处理
-        }
-        /*针对非基础类型对象Set*/
-        if(isSet(param)){
-            //暂时不处理
-        }
-        /*针对非基础类型对象Map*/
-        if(isMap(param)){
-            //暂时不处理
-        }
+    public static ValidateState volidate(ValidateState state, Object param) {
         Validator validated =  param.getClass().getAnnotation(Validator.class);
         if(validated==null || validated.validate()){
             return doValidate(state, param);
@@ -94,24 +74,37 @@ public class ValidateTools {
             Validator validated = method.getAnnotation(Validator.class);
             if(validated!=null){
                 String key = clazz.getName()+"."+validated.alias();
-                List<ValidateNode> list = new ArrayList<ValidateNode>();
-                Annotation[][] annotations =  method.getParameterAnnotations();
-                for(Annotation[] annotationArr: annotations){
-                    if(annotationArr.length>0){
-                        Annotation annotation = annotationArr[0];
-                        if(annotation instanceof Valid){
-                            Valid validate = (Valid) annotation;
-                            if(validate.validate()){
-                                ValidateNode param = new ValidateNode(validate,validate.name());
-                                list.add(param);
-                            }
-                        }
-                    }
-                }
-                getPcaches().put(key,list);
+                List<ValidateNode> list = resolveMethod(method);
+                getCaches().put(key,list);
             }
         }
     }
+
+    private static List<ValidateNode> resolveMethod(Method method){
+        List<ValidateNode> list = new ArrayList();
+        Annotation[][] annotations =  method.getParameterAnnotations();
+        for(Annotation[] annotationArr: annotations){
+            if(annotationArr.length<0){
+                continue;
+            }
+            Valid valid = hasValid(annotationArr);
+            if(valid!=null&&valid.validate()){
+                ValidateNode param = new ValidateNode(valid,valid.name());
+                list.add(param);
+            }
+        }
+        return list;
+    }
+
+    private static Valid hasValid(Annotation[] annotations){
+        for(Annotation annotation: annotations){
+            if(annotation instanceof Valid){
+                return (Valid) annotation;
+            }
+        }
+        return null;
+    }
+
 
     /**
      *
@@ -154,6 +147,7 @@ public class ValidateTools {
                 }
                 node.validate(state, FieldUtils.readField(object,node.getField().getName(),true),object);
             } catch (IllegalAccessException e) {
+                throw new TrionesException("数据验证异常",e);
             }
         }
     }
@@ -167,57 +161,13 @@ public class ValidateTools {
                 }
                 node.validate(state,objs[index]);
             } catch (Exception e) {
+                throw new TrionesException("数据验证异常",e);
             }
         }
-    }
-
-
-    private static  boolean isBaseDataType(Class clazz){
-        return
-                (
-                        clazz.equals(String.class) ||
-                                clazz.equals(Integer.class)||
-                                clazz.equals(Byte.class) ||
-                                clazz.equals(Long.class) ||
-                                clazz.equals(Double.class) ||
-                                clazz.equals(Float.class) ||
-                                clazz.equals(Character.class) ||
-                                clazz.equals(Short.class) ||
-                                clazz.equals(BigDecimal.class) ||
-                                clazz.equals(BigInteger.class) ||
-                                clazz.equals(Boolean.class) ||
-                                clazz.equals(Date.class) ||
-                                clazz.isPrimitive()
-                );
-    }
-
-    private static boolean isMap(Object obj){
-        return (obj instanceof Map<?,?>);
-    }
-
-    private static boolean isList(Object obj){
-        return (obj instanceof List<?>);
-    }
-
-    private static boolean isSet(Object obj){
-        return (obj instanceof java.util.Set<?>);
-    }
-
-    private static boolean isArray(Class clazz){
-        return clazz.isArray();
     }
 
     public static ConcurrentMap<String, List<ValidateNode>> getCaches() {
         return caches;
     }
-
-    public static Map<String, List<ValidateNode>> getPcaches() {
-        return pcaches;
-    }
-
-    public static void setPcaches(Map<String, List<ValidateNode>> pcaches) {
-        ValidateTools.pcaches = pcaches;
-    }
-
 
 }

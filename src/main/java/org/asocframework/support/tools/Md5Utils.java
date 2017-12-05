@@ -2,7 +2,6 @@ package org.asocframework.support.tools;
 
 import org.apache.commons.codec.digest.DigestUtils;
 
-
 import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 
