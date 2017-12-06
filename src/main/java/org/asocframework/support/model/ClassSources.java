@@ -1,5 +1,6 @@
 package org.asocframework.support.model;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,10 @@ public class ClassSources {
         baseData.put("java.lang.Character",Character.class);
         baseData.put("char",Character.class);
         baseData.put("java.lang.String",String.class);
+        baseData.put("java.util.Date", Date.class);
+    }
+
+    private ClassSources() {
     }
 
     public static Class getBaseDataClass(String classKey){
