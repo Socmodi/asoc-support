@@ -24,7 +24,7 @@ public class Model {
     @Valid(minValue = "10")
     private List<Integer> list;
 
-    @Valid
+    @Valid(supportNull = true)
     private List<SubModel> subs;
 
 

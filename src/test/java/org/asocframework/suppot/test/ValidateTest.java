@@ -19,14 +19,14 @@ public class ValidateTest {
     public void volidateTest(){
         Model model = new Model("test");
         ValidateState state = ValidateTools.volidate(model);
-        System.out.println(state.isPass());
+        System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 
     @Test
     public void volidateTest2(){
         ValidateTools.resolve(service.getClass());
         ValidateState state = service.service("test",1);
-        System.out.println(state.isPass());
+        System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 
     /**
@@ -38,7 +38,7 @@ public class ValidateTest {
         list.add(1);
         Model model = new Model(11,"test",list);
         ValidateState state = ValidateTools.volidate(model);
-        System.out.println(state.isPass());
+        System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 
     /**
@@ -51,9 +51,9 @@ public class ValidateTest {
         subModels.add(new SubModel(9,"sdfsdf"));
         list.add(11);
         Model model = new Model(11,"test",list);
-        model.setSubs(subModels);
+        //model.setSubs(subModels);
         ValidateState state = ValidateTools.volidate(model);
-        System.out.println(state.isPass());
+        System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 
 
@@ -66,7 +66,7 @@ public class ValidateTest {
         subModels.add(new SubModel(9,"sdfsdf"));
         ValidateTools.resolve(service.getClass());
         ValidateState state = service.service3("test",11,subModels);
-        System.out.println(state.isPass());
+        System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 
 
@@ -79,7 +79,7 @@ public class ValidateTest {
         list.add(6);
         ValidateTools.resolve(service.getClass());
         ValidateState state = service.service2("test",11,list);
-        System.out.println(state.isPass());
+        System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 
     @Test

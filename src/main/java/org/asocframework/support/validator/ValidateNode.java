@@ -69,9 +69,20 @@ public class ValidateNode {
             throw new TrionesException("非法验证机制");
 
         }
-        if(ClassUtils.isBaseDataType(value.getClass())){
-            validateBaseData(state,value,true);
-            if(!StringUtils.isEmpty(defaultValue)){
+        boolean isNull = value== null|| "".equals(value.toString());
+        if(supportNull&&isNull){
+            return ;
+        }
+        if(isNull){
+            state.setErrorMsg(name+"为: "+value);
+            state.setPass(false);
+            return ;
+        }
+        boolean isCompount = ClassUtils.isBaseDataType(value.getClass());
+        if(isCompount){
+            doValidate(state,value,true);
+            //validateBaseData(state,value,true);
+            if(state.isPass()&&!StringUtils.isEmpty(defaultValue)){
                 try {
                     Class type = ClassSources.getBaseDataClass(field.getType().getName());
                     FieldUtils.writeDeclaredField(object,field.getName(),ClassUtils.constructValue(type,defaultValue),true);
@@ -79,26 +90,57 @@ public class ValidateNode {
                     throw new TrionesException("非法验证机制",e);
                 }
             }
+            return;
         }else {
-            validateCompoundData(state,value,value.getClass(),false);
+            doValidate(state,value,false);
+            //validateCompoundData(state,value,false);
         }
     }
 
 
     public void validate(ValidateState state,Object value){
-        if(ClassUtils.isBaseDataType(value.getClass())){
-            validateBaseData(state, value,false);
+/*        if(noneValidateForNull(value)){
+            return ;
+        }*/
+        doValidate(state, value,false);
+/*        if(value!=null&&ClassUtils.isBaseDataType(value.getClass())){
+            doValidate(state, value,false);
+            //validateBaseData(state, value,false);
         }else {
-            validateCompoundData(state,value,value.getClass(),false);
-        }
+            doValidate(state, value,false);
+            //validateCompoundData(state,value,false);
+        }*/
     }
 
-    private void validateCompoundData(ValidateState state,Object value,Class clazz,Boolean supportDef){
+    private void doValidate(ValidateState state,Object value,Boolean supportDef){
+        if(!state.isPass()){
+            return;
+        }
+        boolean isNull = value== null|| "".equals(value.toString());
+        if(supportNull&&isNull){
+            return ;
+        }
+        if(isNull){
+            state.setErrorMsg(name+"为: "+value);
+            state.setPass(false);
+            return ;
+        }
+        boolean isCompount = ClassUtils.isBaseDataType(value.getClass());
+        if(isCompount){
+            validateBaseData(state,value,supportDef);
+        }else {
+            validateCompoundData(state,value,supportDef);
+
+        }
+
+    }
+
+    private void validateCompoundData(ValidateState state,Object value,Boolean supportDef){
         if(value instanceof Collection){
             validateCollection(state, (Collection) value,supportDef);
             return;
         }
-        if(clazz.isArray()){
+        if(value.getClass().isArray()){
             validateArray(state, (Object[]) value,supportDef);
             return;
         }
@@ -112,11 +154,12 @@ public class ValidateNode {
                 break;
             }
             Object val = iterator.next();
-            if(ClassUtils.isBaseDataType(val.getClass())){
+            doValidate(state,val,supportDef);
+/*            if(ClassUtils.isBaseDataType(val.getClass())){
                 validateBaseData(state,val,supportDef);
             }else {
-                validateCompoundData(state,val,val.getClass(),false);
-            }
+                validateCompoundData(state,val,false);
+            }*/
         }
     }
 
@@ -125,13 +168,19 @@ public class ValidateNode {
             if(!state.isPass()){
                 break;
             }
-            if(ClassUtils.isBaseDataType(val.getClass())){
+            doValidate(state,val,supportDef);
+            /*if(ClassUtils.isBaseDataType(val.getClass())){
                 validateBaseData(state,val,supportDef);
             }else {
-                validateCompoundData(state,val,val.getClass(),false);
-            }
+                validateCompoundData(state,val,false);
+            }*/
         }
 
+    }
+
+    private boolean noneValidateForNull(Object value){
+        boolean isNull = (value == null || "".equals(value.toString()));
+        return supportNull&&isNull;
     }
 
     /**
@@ -203,6 +252,7 @@ public class ValidateNode {
             }
         }
     }
+
 
     public Field getField() {
         return field;
