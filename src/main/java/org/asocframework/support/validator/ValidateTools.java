@@ -6,6 +6,7 @@ import org.asocframework.support.model.TrionesException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,21 +76,28 @@ public class ValidateTools {
             if(validated!=null){
                 String key = clazz.getName()+"."+validated.alias();
                 List<ValidateNode> list = resolveMethod(method);
-                getCaches().put(key,list);
+                if(list!=null && list.size()>0){
+                    getCaches().put(key,list);
+                }
             }
         }
     }
 
     private static List<ValidateNode> resolveMethod(Method method){
         List<ValidateNode> list = new ArrayList();
-        Annotation[][] annotations =  method.getParameterAnnotations();
-        for(Annotation[] annotationArr: annotations){
-            if(annotationArr.length<0){
+        Annotation[][] parameterAnnotations =  method.getParameterAnnotations();
+        Type[] types = method.getGenericParameterTypes();
+        if(parameterAnnotations.length<0){
+            return null;
+        }
+        for(int index = 0 ;index <parameterAnnotations.length ;index++ ){
+            Annotation[] annotations = parameterAnnotations[index];
+            if( annotations==null||annotations.length<0){
                 continue;
             }
-            Valid valid = hasValid(annotationArr);
+            Valid valid = hasValid(annotations);
             if(valid!=null&&valid.validate()){
-                ValidateNode param = new ValidateNode(valid,valid.name());
+                ValidateNode param = new ValidateNode(valid,valid.name(),types[index]);
                 list.add(param);
             }
         }
@@ -160,14 +168,19 @@ public class ValidateTools {
                     break;
                 }
                 node.validate(state,objs[index]);
+                if(state.getDefaultValue()!=null){
+                    objs[index] = state.getDefaultValue();
+                    state.removerDefaultValue();
+                    state.putParam(node.getName(),objs[index]);
+                }
             } catch (Exception e) {
                 throw new TrionesException("数据验证异常",e);
             }
         }
+        state.setArgs(objs);
     }
 
     public static ConcurrentMap<String, List<ValidateNode>> getCaches() {
         return caches;
     }
-
 }

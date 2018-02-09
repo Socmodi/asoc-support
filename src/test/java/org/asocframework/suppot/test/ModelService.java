@@ -18,16 +18,18 @@ import java.util.List;
 public class ModelService {
 
     @Validator(alias = "service")
-    public ValidateState service(@Valid(defaultValue = "model")String name, @Valid(minValue = "10") Integer id){
+    public ValidateState service(@Valid(name = "name",defaultValue = "model")String name, @Valid(name = "id",minValue = "10") Integer id){
         ValidateState validateState = ValidateTools.volidate(this.getClass().getName()+".service",name,id);
         return validateState;
     }
 
 
     @Validator(alias = "service2")
-    public ValidateState service2(@Valid(defaultValue = "model")String name,@Valid(minValue = "10") Integer id,
-                                  @Valid(minValue = "10") List<Integer> list){
+    public ValidateState service2(@Valid(name = "name",defaultValue = "model")String name,@Valid(name = "id",minValue = "10") Integer id,
+                                  @Valid(name = "list",minValue = "10") List<Integer> list){
         ValidateState validateState = ValidateTools.volidate(this.getClass().getName()+".service2",name,id,list);
+        name = (String) validateState.getPram("name");
+        System.out.println("name:"+name +",id:"+id);
         return validateState;
     }
 
@@ -36,6 +38,7 @@ public class ModelService {
     public ValidateState service3(@Valid(defaultValue = "model")String name,@Valid(minValue = "10") Integer id,
                                   @Valid List<SubModel> list){
         ValidateState validateState = ValidateTools.volidate(this.getClass().getName()+".service3",name,id,list);
+
         return validateState;
     }
 

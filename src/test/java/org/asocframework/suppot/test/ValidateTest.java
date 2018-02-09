@@ -78,7 +78,7 @@ public class ValidateTest {
         ArrayList<Integer> list = new ArrayList();
         list.add(6);
         ValidateTools.resolve(service.getClass());
-        ValidateState state = service.service2("test",11,list);
+        ValidateState state = service.service2("",11,list);
         System.out.println(state.isPass()+",msg:"+state.getErrorMsg());
     }
 

@@ -19,11 +19,6 @@ public @interface Valid {
     boolean validate() default true;
 
     String name() default "";
-    /**
-     * 允许为空
-     * @return
-     */
-    boolean isEmpty() default false;
 
     /**
      * 正则匹配
@@ -35,7 +30,7 @@ public @interface Valid {
      * 正则模板,ip,phone,tele,email;
      * @return
      */
-    String refexpTemplate() default "";
+    String regexpTemplate() default "";
 
     /**
      * 数值类型，数值区间最小
@@ -72,5 +67,11 @@ public @interface Valid {
      * @return
      */
     int length() default 0;
+
+    /**
+     *  组合校验，暂不支持
+     * @return
+     */
+    String validGroup() default "";
 
 }
