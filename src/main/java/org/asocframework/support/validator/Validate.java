@@ -6,4 +6,21 @@ package org.asocframework.support.validator;
  * @desc
  */
 public interface Validate {
+
+    /**
+     * 执行校验
+     * @param state
+     * @param value
+     * @param object
+     */
+    void validate(ValidateState state, Object value, Object object);
+
+    /**
+     * 执行校验
+     * @param state
+     * @param value
+     */
+    void validate(ValidateState state, Object value);
+
+
 }
